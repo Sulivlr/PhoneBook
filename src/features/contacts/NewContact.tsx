@@ -1,6 +1,6 @@
 import {Avatar, Box, TextField, Typography} from '@mui/material';
 import React, { useState } from 'react';
-import { ContactMutation } from '../../types';
+import {ContactMutation} from '../../types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectContactIsCreating } from './contactsSlice';
 import { createContact } from './contactsThunks';
