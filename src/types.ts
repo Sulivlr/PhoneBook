@@ -1,9 +1,13 @@
-export interface Contact {
+export interface ApiContact {
   id: string;
   name: string;
   email: string;
-  phone: number;
+  phone: string;
   photo: string;
+}
+
+export interface ApiContacts {
+  [id: string]: ContactMutation;
 }
 
 export interface ContactMutation {

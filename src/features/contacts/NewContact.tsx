@@ -1,8 +1,19 @@
-import {Avatar, Box, Button, TextField, Typography} from '@mui/material';
+import {Avatar, Box, TextField, Typography} from '@mui/material';
 import React, { useState } from 'react';
 import { ContactMutation } from '../../types';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { selectContactIsCreating } from './contactsSlice';
+import { createContact } from './contactsThunks';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { LoadingButton } from '@mui/lab';
+import SendIcon from '@mui/icons-material/Send';
+
 
 const NewContact = () => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const isCreating = useAppSelector(selectContactIsCreating);
   const [contact, setContact] = useState<ContactMutation>({
     name: '',
     phone: '',
@@ -13,18 +24,23 @@ const NewContact = () => {
   const onFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setContact((prevState) => ({ ...prevState, [name]: value }));
-    console.log(contact);
   };
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    try {
+      await dispatch(createContact({ ...contact })).unwrap();
+      navigate('/');
+      toast.success('Contact is created');
+    } catch {
+      toast.error('Contact didn’t create');
+    }
   };
-
 
   return (
     <form onSubmit={onSubmit}>
       <Typography sx={{ mb: 2 }} variant="h4">
-        Add new contact
+        Add New Contact
       </Typography>
       <Box gap={2} sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
         <TextField
@@ -67,12 +83,18 @@ const NewContact = () => {
             alt={contact.name}
             sx={{ width: 150, height: 150 }}
           />
-          <Typography fontSize="20px" >Photo Preview</Typography>
+          <Typography fontSize="20px">Photo Preview</Typography>
         </Box>
       </Box>
-      <Button variant="contained" type="submit">
+      <LoadingButton
+        type="submit"
+        loading={isCreating}
+        loadingPosition="end"
+        endIcon={<SendIcon />}
+        variant="contained"
+      >
         Save
-      </Button>
+      </LoadingButton>
     </form>
   );
 };
