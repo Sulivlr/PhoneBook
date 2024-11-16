@@ -1,18 +1,18 @@
 import {createSlice} from '@reduxjs/toolkit';
-import {createContact, fetchContacts} from './contactsThunks';
+import {createContact, deleteContact, fetchContacts} from './contactsThunks';
 import {Contact} from '../../types';
 
 export interface ContactsState {
   items: Contact[]
   isCreating: boolean,
-  isDeleting: boolean,
+  isRemoving: string | null,
   isFetching: boolean,
 }
 
 export const initialState: ContactsState = {
   items: [],
   isCreating: false,
-  isDeleting: false,
+  isRemoving: null,
   isFetching: false,
 };
 
@@ -37,11 +37,20 @@ export const contactsSlice = createSlice({
     }).addCase(fetchContacts.rejected, (state) => {
       state.isFetching = false;
     });
+
+    builder.addCase(deleteContact.pending, (state,{meta: {arg: id}}) => {
+      state.isRemoving = id;
+    }).addCase(deleteContact.fulfilled, (state) => {
+      state.isRemoving = null;
+    }).addCase(deleteContact.rejected, (state) => {
+      state.isRemoving = null;
+    });
   },
   selectors: {
     selectContactIsCreating: (state) => state.isCreating,
     selectContactIsFetching: (state) => state.isFetching,
     selectContacts: (state) => state.items,
+    selectContactIsRemoving: (state) => state.isRemoving,
   }
 });
 
@@ -50,4 +59,5 @@ export const {
   selectContactIsCreating,
   selectContactIsFetching,
   selectContacts,
+  selectContactIsRemoving,
 } = contactsSlice.selectors;

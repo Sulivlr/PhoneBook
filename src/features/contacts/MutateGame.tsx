@@ -2,16 +2,17 @@ import {Avatar, Box, TextField, Typography} from '@mui/material';
 import React, { useState } from 'react';
 import {ContactMutation} from '../../types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { selectContactIsCreating } from './contactsSlice';
-import { createContact } from './contactsThunks';
+import {selectContactIsCreating} from './contactsSlice';
+import {createContact} from './contactsThunks';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import { LoadingButton } from '@mui/lab';
 import SendIcon from '@mui/icons-material/Send';
 
 
-const NewContact = () => {
+const MutateGame = () => {
   const navigate = useNavigate();
+  const {id} = useParams();
   const dispatch = useAppDispatch();
   const isCreating = useAppSelector(selectContactIsCreating);
   const [contact, setContact] = useState<ContactMutation>({
@@ -40,7 +41,7 @@ const NewContact = () => {
   return (
     <form onSubmit={onSubmit}>
       <Typography sx={{ mb: 2 }} variant="h4">
-        Add New Contact
+        { id ? 'Edit a contact' : 'Add new contact'}
       </Typography>
       <Box gap={2} sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
         <TextField
@@ -99,4 +100,4 @@ const NewContact = () => {
   );
 };
 
-export default NewContact;
+export default MutateGame;

@@ -22,3 +22,10 @@ export const fetchContacts = createAsyncThunk<Contact[]>(
     }));
   }
 );
+
+export const deleteContact = createAsyncThunk<void, string>(
+  'contacts/delete',
+  async (id) => {
+    await axiosApi.delete(`/contacts/${id}.json`);
+  }
+);

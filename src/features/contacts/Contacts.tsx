@@ -1,14 +1,13 @@
 import {useAppDispatch, useAppSelector} from '../../app/hooks';
 import {useEffect, useState} from 'react';
-import {fetchContacts} from './contactsThunks';
-import {selectContactIsFetching, selectContacts} from './contactsSlice';
+import {deleteContact, fetchContacts} from './contactsThunks';
+import {selectContactIsFetching, selectContactIsRemoving, selectContacts} from './contactsSlice';
 import CloseIcon from '@mui/icons-material/Close';
 import PhoneForwardedIcon from '@mui/icons-material/PhoneForwarded';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LoadingButton from '@mui/lab/LoadingButton';
-
 import {
   Avatar,
   Box,
@@ -21,17 +20,33 @@ import {
   Typography
 } from '@mui/material';
 import {Contact} from '../../types';
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
+import {toast} from 'react-toastify';
 
 const Contacts = () => {
   const dispatch = useAppDispatch();
   const contacts = useAppSelector(selectContacts);
   const isFetching = useAppSelector(selectContactIsFetching);
+  const isRemoving = useAppSelector(selectContactIsRemoving);
+  const navigate = useNavigate();
+  // const isRemoving = true
   const [clickedContact, setClickedContact] = useState<Contact | null>(null);
 
   useEffect(() => {
     dispatch(fetchContacts());
   }, [dispatch]);
+
+  const deleteContactById = async (id: string) => {
+    try {
+      await dispatch(deleteContact(id));
+      setClickedContact(null);
+      await dispatch(fetchContacts());
+      navigate('/');
+      toast.success(`Contact is deleted`);
+    } catch {
+      toast.error('Could not delete contact');
+    }
+  };
 
   return isFetching ? (
     <CircularProgress sx={{marginLeft: 60, marginTop: 23}} size="12rem"/>
@@ -61,61 +76,66 @@ const Contacts = () => {
           </CardActionArea>
         </Card>
       ))}
-      <Modal open={clickedContact !== null}>
-        <Box sx={{
-          width: 500,
-          padding: 2,
-          backgroundColor: 'white',
-          margin: 'auto',
-          marginTop: 10,
-          position: 'relative'
-        }}>
-          <IconButton
-            onClick={() => setClickedContact(null)}
-            sx={{
-              position: 'absolute',
-              top: 10,
-              right: 10
-            }}
-          >
-            <CloseIcon/>
-          </IconButton>
-
-          <Avatar src={clickedContact?.photo} alt={clickedContact?.name}
-                  sx={{width: 100, height: 100, margin: '0 auto'}}/>
-          <Box>
-            <Typography sx={{marginTop: 2}} variant="h4" align="center">
-              {clickedContact?.name}
-            </Typography>
-            <Typography variant="h5" align="center">
-              <PhoneForwardedIcon sx={{marginRight: 1}}/>
-              {clickedContact?.phone}
-            </Typography>
-            <Typography variant="h6" align="center">
-              <AlternateEmailIcon sx={{marginRight: 1}}/>
-              {clickedContact?.email}
-            </Typography>
-          </Box>
-
-          <Box sx={{display: 'flex', justifyContent: 'space-between', marginTop: 2}}>
-            <Link to={`/edit/${clickedContact?.id}`}>
-              <LoadingButton
-                variant="contained">
-                <EditNoteIcon
-                  sx={{marginRight: 1}}/>
-                Edit
-              </LoadingButton>
-            </Link>
-            <LoadingButton
-              variant="contained"
-              color="error"
+      {contacts.map((contact) => (
+        <Modal open={clickedContact !== null}>
+          <Box sx={{
+            width: 500,
+            padding: 2,
+            backgroundColor: 'white',
+            margin: 'auto',
+            marginTop: 10,
+            position: 'relative'
+          }}>
+            <IconButton
+              onClick={() => setClickedContact(null)}
+              sx={{
+                position: 'absolute',
+                top: 10,
+                right: 10
+              }}
             >
-              <DeleteIcon sx={{marginRight: 1}}/>
-              Delete
-            </LoadingButton>
+              <CloseIcon/>
+            </IconButton>
+
+            <Avatar src={clickedContact?.photo} alt={clickedContact?.name}
+                    sx={{width: 100, height: 100, margin: '0 auto'}}/>
+            <Box>
+              <Typography sx={{marginTop: 2}} variant="h4" align="center">
+                {clickedContact?.name}
+              </Typography>
+              <Typography variant="h5" align="center">
+                <PhoneForwardedIcon sx={{marginRight: 1}}/>
+                {clickedContact?.phone}
+              </Typography>
+              <Typography variant="h6" align="center">
+                <AlternateEmailIcon sx={{marginRight: 1}}/>
+                {clickedContact?.email}
+              </Typography>
+            </Box>
+
+            <Box sx={{display: 'flex', justifyContent: 'space-between', marginTop: 2}}>
+              <Link to={`/contacts/${clickedContact?.id}/edit`}>
+                <LoadingButton
+                  variant="contained"
+                  endIcon={<EditNoteIcon/>}
+                >
+                  Edit
+                </LoadingButton>
+              </Link>
+              <LoadingButton
+                onClick={() => deleteContactById(contact.id)}
+                variant="contained"
+                color="error"
+                loading={isRemoving}
+                loadingPosition="end"
+                endIcon={<DeleteIcon/>}
+              >
+                Delete
+              </LoadingButton>
+            </Box>
           </Box>
-        </Box>
-      </Modal>
+        </Modal>
+      ))}
     </Box>
   );
 };
