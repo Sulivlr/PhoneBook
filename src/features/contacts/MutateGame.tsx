@@ -1,14 +1,14 @@
-import {Avatar, Box, TextField, Typography} from '@mui/material';
-import React, { useState } from 'react';
+import {Avatar, Box, CircularProgress, TextField, Typography} from '@mui/material';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ContactMutation} from '../../types';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import {useAppDispatch, useAppSelector} from '../../app/hooks';
 import {selectContactIsCreating} from './contactsSlice';
 import {createContact} from './contactsThunks';
-import { toast } from 'react-toastify';
+import {toast} from 'react-toastify';
 import {useNavigate, useParams} from 'react-router-dom';
-import { LoadingButton } from '@mui/lab';
+import {LoadingButton} from '@mui/lab';
 import SendIcon from '@mui/icons-material/Send';
-
+import axiosApi from '../../axiosApi';
 
 const MutateGame = () => {
   const navigate = useNavigate();
@@ -22,15 +22,37 @@ const MutateGame = () => {
     photo: '',
   });
 
+  const [isFetching, setIsFetching] = useState(false);
+
+  const fetchOneContact = useCallback(async (id: string) => {
+    setIsFetching(true);
+    const {data: contact} = await axiosApi.get<ContactMutation | null>(`/contacts/${id}.json`);
+    if (contact) {
+      setContact(contact);
+    }
+    setIsFetching(false);
+  }, []);
+
+  useEffect(() => {
+    if (id !== undefined) {
+      void fetchOneContact(id);
+    }
+  }, [id, fetchOneContact]);
+
   const onFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setContact((prevState) => ({ ...prevState, [name]: value }));
+    const {name, value} = event.target;
+    setContact((prevState) => ({...prevState, [name]: value}));
   };
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      await dispatch(createContact({ ...contact })).unwrap();
+
+      if (id !== undefined) {
+        await axiosApi.put(`/contacts/${id}.json`, {...contact});
+      } else {
+        await dispatch(createContact({...contact})).unwrap();
+      }
       navigate('/');
       toast.success('Contact is created');
     } catch {
@@ -38,12 +60,12 @@ const MutateGame = () => {
     }
   };
 
-  return (
+  return isFetching ? (<CircularProgress/>) : (
     <form onSubmit={onSubmit}>
-      <Typography sx={{ mb: 2 }} variant="h4">
-        { id ? 'Edit a contact' : 'Add new contact'}
+      <Typography sx={{mb: 2}} variant="h4">
+        {id ? 'Edit a contact' : 'Add new contact'}
       </Typography>
-      <Box gap={2} sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
+      <Box gap={2} sx={{display: 'flex', flexDirection: 'column', mb: 2}}>
         <TextField
           required
           name="name"
@@ -77,12 +99,12 @@ const MutateGame = () => {
           label="Photo"
           variant="outlined"
         />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
           <Avatar
             variant="rounded"
             src={contact.photo}
             alt={contact.name}
-            sx={{ width: 150, height: 150 }}
+            sx={{width: 150, height: 150}}
           />
           <Typography fontSize="20px">Photo Preview</Typography>
         </Box>
@@ -91,7 +113,7 @@ const MutateGame = () => {
         type="submit"
         loading={isCreating}
         loadingPosition="end"
-        endIcon={<SendIcon />}
+        endIcon={<SendIcon/>}
         variant="contained"
       >
         Save

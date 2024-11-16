@@ -20,8 +20,9 @@ import {
   Typography
 } from '@mui/material';
 import {Contact} from '../../types';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import {toast} from 'react-toastify';
+
 
 const Contacts = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +30,6 @@ const Contacts = () => {
   const isFetching = useAppSelector(selectContactIsFetching);
   const isRemoving = useAppSelector(selectContactIsRemoving);
   const navigate = useNavigate();
-  // const isRemoving = true
   const [clickedContact, setClickedContact] = useState<Contact | null>(null);
 
   useEffect(() => {
@@ -47,6 +47,7 @@ const Contacts = () => {
       toast.error('Could not delete contact');
     }
   };
+
 
   return isFetching ? (
     <CircularProgress sx={{marginLeft: 60, marginTop: 23}} size="12rem"/>
